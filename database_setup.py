@@ -34,6 +34,38 @@ def create_db():
     ''')
     conn.commit()
     conn.close()
+    
+def insert_data(ticker, df):
+    conn = sqlite3.connect(DB_FILE)
+    c = conn.cursor()
+    for index, row in df.iterrows():
+        try:
+            c.execute('''
+                INSERT OR IGNORE INTO stock_data (ticker, datetime, open, high, low, close, volume)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            ''', (
+                ticker,
+                index.strftime('%Y-%m-%d %H:%M:%S'),
+                row['Open'],
+                row['High'],
+                row['Low'],
+                row['Close'],
+                row['Volume']
+            ))
+        except Exception as e:
+            print(f"Error inserting {ticker} @ {index}: {e}")
+    conn.commit()
+    conn.close()
+
+def prune_old_data():
+    cutoff = (datetime.now() - timedelta(days=30)).strftime('%Y-%m-%d %H:%M:%S')
+    conn = sqlite3.connect(DB_FILE)
+    c = conn.cursor()
+    c.execute("DELETE FROM stock_data WHERE datetime < ?", (cutoff,))
+    conn.commit()
+    conn.close()
+    
+
 
 def calculate_sharpe_ratio(ticker):
     # Fetch stock data 
