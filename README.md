@@ -13,6 +13,7 @@ pip install pandas numpy matplotlib yfinance flask flask-sqlalchemy schedule
 
 ### Step 4: Run the App
 In the same Terminal, type: python app.py
+
 Wait until you see: * Running on http://127.0.0.1:5000
 
 ### Step 5: Open the App in Your Browser
