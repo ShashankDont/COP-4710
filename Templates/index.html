@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+                            
+{% block title %}Home{% endblock %}
+                        
+{% block content %}
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header bg-success text-white">
+                <h5>Top 5 Stocks by Sharpe Ratio</h5>
+            </div>  
+            <div class="card-body">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Ticker</th>
+                            <th>Sharpe Ratio</th>  
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for stock in top_stocks %}
+                        <tr>
+                            <td>{{ stock['rank'] }}</td>
+                            <td><a href="{{ url_for('stock_detail', ticker=stock['ticker']) }}">{{ stock['ticker'] }}</a></td>
+                            <td>{{ "%.4f"|format(stock['sharpe_ratio']) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+                    
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header bg-danger text-white">
+                <h5>Bottom 5 Stocks by Sharpe Ratio</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-striped">
+                    <thead>  
+                        <tr>
+                            <th>Rank</th>
+                            <th>Ticker</th>
+                            <th>Sharpe Ratio</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for stock in bottom_stocks %}
+                        <tr>
+                            <td>{{ stock['rank'] }}</td>
+                            <td><a href="{{ url_for('stock_detail', ticker=stock['ticker']) }}">{{ stock['ticker'] }}</a></td>
+                            <td>{{ "%.4f"|format(stock['sharpe_ratio']) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>  
+            </div>
+        </div>
+    </div>
+</div>
+            
+<div class="card">
+    <div class="card-header">
+        <h5>About the Sharpe Ratio</h5>
+    </div>
+    <div class="card-body">
+        <p>The Sharpe ratio measures the performance of an investment compared to a risk-free asset,
+        after adjusting for its risk. It's calculated as the difference between the returns of the
+        investment and the risk-free return, divided by the standard deviation of the investment returns.</p>
+        <p>A higher Sharpe ratio indicates better risk-adjusted performance.</p>
+    </div>
+</div>
+{% endblock %}
