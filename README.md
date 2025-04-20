@@ -21,6 +21,7 @@ Open your web browser (Chrome, Firefox, etc.).
 Type this in the address bar:
 
 http://127.0.0.1:5000
+
 The Stock Tracker app should now be running!
 
 ## Troubleshooting
