@@ -94,7 +94,7 @@ def calculate_sharpe_ratio(ticker):
         FROM stock_data
         WHERE ticker = ?
         ORDER BY datetime DESC
-        LIMIT 30  -- Get last 30 days for Sharpe ratio calculation
+        LIMIT 30 
     ''', (ticker,))
     data = c.fetchall()
 
@@ -108,11 +108,11 @@ def calculate_sharpe_ratio(ticker):
     df.set_index('datetime', inplace=True)
     
     # Calculate daily returns
-    df['daily_return'] = df['close'].pct_change()
+    df['30h_return'] = df['close'].pct_change()
 
     # Calculate Sharpe ratio (mean return - risk-free rate) / std deviation of returns
-    mean_return = df['daily_return'].mean()
-    std_dev = df['daily_return'].std()
+    mean_return = df['30h_return'].mean()
+    std_dev = df['30h_return'].std()
 
     sharpe_ratio = (mean_return - RISK_FREE_RATE) / std_dev if std_dev != 0 else 0
     conn.close()
