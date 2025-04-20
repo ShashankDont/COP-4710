@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Watchlist{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">Your Watchlist</h2>
+
+<div class="card mb-4">
+    <div class="card-header">
+        Add/Remove Stocks
+    </div>
+    <div class="card-body">
+        <form method="post" class="row g-3">
+            <div class="col-md-8">
+                <input type="text" class="form-control" name="ticker" placeholder="Enter stock ticker (e.g., AAPL)" required>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" name="action" value="add" class="btn btn-success w-100">Add</button>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" name="action" value="remove" class="btn btn-danger w-100">Remove</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if watched_stocks %}
+<div class="card">
+    <div class="card-header">
+        Currently Watched Stocks
+    </div>
+    <div class="card-body">
+        <div class="row">
+            {% for stock in watched_stocks %}
+            <div class="col-md-3 mb-3">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">{{ stock['ticker'] }}</h5>
+                        <a href="{{ url_for('stock_detail', ticker=stock['ticker']) }}" class="btn btn-primary btn-sm">View</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="alert alert-info">
+    Your watchlist is empty. Add some stocks to track them!
+</div>
+{% endif %}
+{% endblock %}
