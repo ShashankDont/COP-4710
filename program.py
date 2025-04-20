@@ -71,15 +71,29 @@ def fetch_initial_data(tickers):
 def fetch_hourly_data(tickers):
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print(f"[{now}] Fetching hourly updates...")
-    for ticker in tickers:
+
+    all_tickers = set(tickers)
+
+    # Pull watched stocks from DB
+    conn = sqlite3.connect(DB_FILE)
+    c = conn.cursor()
+    c.execute("SELECT ticker FROM watched_stocks")
+    watched = [row[0] for row in c.fetchall()]
+    conn.close()
+
+    all_tickers.update(watched)  # combine static + user-entered
+
+    for ticker in all_tickers:
         print(f"  > {ticker}")
         stock = yf.Ticker(ticker)
         df = stock.history(period="1d", interval="1h")
         if not df.empty:
             df = df[df.index <= pd.Timestamp.now()]
             insert_data(ticker, df)
+
     prune_old_data()
     update_top_stocks()
+
 
 
 # Run scheduler every hour

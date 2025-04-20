@@ -21,6 +21,23 @@ def create_db():
             PRIMARY KEY (ticker, datetime)
         )
     ''')
+
+    c.execute('''
+    CREATE TABLE IF NOT EXISTS watched_stocks (
+        ticker TEXT PRIMARY KEY
+    )
+ ''')
+
+
+    c.execute('''
+    CREATE TABLE IF NOT EXISTS bottom_stocks (
+        rank INTEGER,
+        ticker TEXT,
+        sharpe_ratio REAL,
+        datetime TEXT
+    )
+ ''')
+
     c.execute('''
         CREATE INDEX IF NOT EXISTS idx_datetime ON stock_data(datetime)
     ''')
@@ -136,5 +153,62 @@ def update_top_stocks():
             VALUES (?, ?, ?, ?)
         ''', (rank, ticker, sharpe_ratio, latest_time))
 
+         # Insert bottom 5
+    c.execute('DELETE FROM bottom_stocks')
+
+    bottom_stocks = sorted(sharpe_ratios, key=lambda x: x[1])[:5]  # Ascending order = worst Sharpe ratios
+
+    for rank, (ticker, sharpe_ratio) in enumerate(bottom_stocks, start=1):
+        c.execute('''
+            INSERT INTO bottom_stocks (rank, ticker, sharpe_ratio, datetime)
+            VALUES (?, ?, ?, ?)
+        ''', (rank, ticker, sharpe_ratio, latest_time))
+
     conn.commit()
     conn.close()
+
+def add_to_watchlist(ticker):
+    ticker = ticker.upper().strip()
+    # Check if it's a valid ticker using yfinance
+    stock = yf.Ticker(ticker)
+    try:
+        test_data = stock.history(period="1d")
+        if test_data.empty:
+            print(f"Ticker '{ticker}' is not valid or has no data.")
+            return False
+    except Exception as e:
+        print(f"Error checking ticker '{ticker}': {e}")
+        return False
+
+    # Add to database
+    conn = sqlite3.connect(DB_FILE)
+    c = conn.cursor()
+    try:
+        c.execute('INSERT OR IGNORE INTO watched_stocks (ticker) VALUES (?)', (ticker,))
+        conn.commit()
+        print(f"✅ '{ticker}' added to watchlist.")
+    except Exception as e:
+        print(f"Error inserting '{ticker}' into watchlist: {e}")
+        return False
+    finally:
+        conn.close()
+
+    return True
+
+def remove_from_watchlist(ticker):
+    ticker = ticker.upper().strip()
+
+    conn = sqlite3.connect(DB_FILE)
+    c = conn.cursor()
+    try:
+        c.execute('DELETE FROM watched_stocks WHERE ticker = ?', (ticker,))
+        conn.commit()
+        print(f"❌ '{ticker}' removed from watchlist.")
+        return True
+    except Exception as e:
+        print(f"Error removing '{ticker}' from watchlist: {e}")
+        return False
+    finally:
+        conn.close()
+
+
