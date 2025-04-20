@@ -1,6 +1,7 @@
 import sqlite3
 import numpy as np
 import pandas as pd
+import yfinance as yf 
 from datetime import datetime, timedelta
 
 DB_FILE = "stocks.db"
@@ -211,4 +212,35 @@ def remove_from_watchlist(ticker):
     finally:
         conn.close()
 
+def add_company_info(ticker, company_name, sector=None, industry=None):
+    conn = sqlite3.connect(DB_FILE)
+    c = conn.cursor()
+    
+    # Create table if it doesn't exist
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS company_info (
+            ticker TEXT PRIMARY KEY,
+            company_name TEXT,
+            sector TEXT,
+            industry TEXT
+        )
+    ''')
+    
+    # Insert or update company info
+    c.execute('''
+        INSERT OR REPLACE INTO company_info (ticker, company_name, sector, industry)
+        VALUES (?, ?, ?, ?)
+    ''', (ticker, company_name, sector, industry))
+    
+    conn.commit()
+    conn.close()
 
+def get_company_info(ticker):
+    conn = sqlite3.connect(DB_FILE)
+    c = conn.cursor()
+    
+    c.execute('SELECT * FROM company_info WHERE ticker = ?', (ticker,))
+    info = c.fetchone()
+    
+    conn.close()
+    return info
