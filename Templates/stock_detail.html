@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}{{ ticker }} Details{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <h2>{{ ticker }} - Stock Details</h2>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                Price Chart (Last 30 Days)
+            </div>
+            <div class="card-body">
+                <img src="data:image/png;base64,{{ plot_data }}" alt="{{ ticker }} Price Chart" class="img-fluid">
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                Recent Price Data
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Open</th>
+                                <th>High</th>
+                                <th>Low</th>
+                                <th>Close</th>
+                                <th>Volume</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in stock_data %}
+                            <tr>
+                                <td>{{ row['datetime'] }}</td>
+                                <td>{{ "%.2f"|format(row['open']) }}</td>
+                                <td>{{ "%.2f"|format(row['high']) }}</td>
+                                <td>{{ "%.2f"|format(row['low']) }}</td>
+                                <td>{{ "%.2f"|format(row['close']) }}</td>
+                                <td>{{ "{:,}".format(row['volume']) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+                                
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                Quick Actions
+            </div>
+            <div class="card-body">
+                <form method="post" action="{{ url_for('watchlist') }}">
+                    <input type="hidden" name="ticker" value="{{ ticker }}">
+                    <input type="hidden" name="action" value="add">
+                    <button type="submit" class="btn btn-success w-100 mb-2">Add to Watchlist</button>
+                </form>
+                                
+                <form method="post" action="{{ url_for('watchlist') }}">  
+                    <input type="hidden" name="ticker" value="{{ ticker }}">
+                    <input type="hidden" name="action" value="remove">
+                    <button type="submit" class="btn btn-danger w-100">Remove from Watchlist</button>
+                </form>
+            </div>
+        </div>
+            
+        <div class="card">
+            <div class="card-header">
+                Company Info    
+            </div>
+            <div class="card-body">
+                <p><strong>Ticker:</strong> {{ ticker }}</p>
+                <!-- Add more company info here as available -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

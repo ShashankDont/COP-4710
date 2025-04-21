@@ -18,46 +18,6 @@ stock_list = [
     "BAC", "INTC", "KO", "PEP", "CSCO"
 ]
 
-# Function to plot stock data
-def plot_stock_data(tickers):
-    conn = sqlite3.connect(DB_FILE)
-    
-    for ticker in tickers:
-        print(f"Generating graph for {ticker}...")
-
-        # Fetch last month's stock data for the ticker
-        c = conn.cursor()
-        c.execute('''
-            SELECT datetime, close
-            FROM stock_data
-            WHERE ticker = ?
-            ORDER BY datetime DESC
-            LIMIT 30  -- Last 30 days
-        ''', (ticker,))
-        data = c.fetchall()
-        
-        if len(data) == 0:
-            print(f"No data available for {ticker}. Skipping...")
-            continue
-        
-        # Convert to pandas DataFrame
-        df = pd.DataFrame(data, columns=['datetime', 'close'])
-        df['datetime'] = pd.to_datetime(df['datetime'])
-        df.set_index('datetime', inplace=True)
-        
-        # Plot the closing prices
-        plt.figure(figsize=(10, 6))
-        plt.plot(df.index, df['close'], label=f'{ticker} Closing Price', color='blue')
-        plt.title(f'{ticker} - Stock Price Over the Last Month')
-        plt.xlabel('Date')
-        plt.ylabel('Price (USD)')
-        plt.grid(True)
-        plt.xticks(rotation=45)
-        plt.tight_layout()
-        plt.show()
-
-    conn.close()
-
 # Initial 1-month daily data
 def fetch_initial_data(tickers):
     for ticker in tickers:
@@ -94,18 +54,3 @@ def fetch_hourly_data(tickers):
     prune_old_data()
     update_top_stocks()
 
-
-
-# Run scheduler every hour
-def run_scheduler():
-    schedule.every().hour.at(":00").do(fetch_hourly_data, tickers=stock_list)
-    while True:
-        schedule.run_pending()
-        time.sleep(30)
-
-# Main program
-if __name__ == "__main__":
-    create_db()
-    fetch_initial_data(stock_list)
-    plot_stock_data(stock_list)  # Generate graph after initial data
-    run_scheduler()

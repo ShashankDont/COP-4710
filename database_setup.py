@@ -1,6 +1,7 @@
 import sqlite3
 import numpy as np
 import pandas as pd
+import yfinance as yf 
 from datetime import datetime, timedelta
 
 DB_FILE = "stocks.db"
@@ -93,7 +94,7 @@ def calculate_sharpe_ratio(ticker):
         FROM stock_data
         WHERE ticker = ?
         ORDER BY datetime DESC
-        LIMIT 30  -- Get last 30 days for Sharpe ratio calculation
+        LIMIT 30 
     ''', (ticker,))
     data = c.fetchall()
 
@@ -107,11 +108,11 @@ def calculate_sharpe_ratio(ticker):
     df.set_index('datetime', inplace=True)
     
     # Calculate daily returns
-    df['daily_return'] = df['close'].pct_change()
+    df['30h_return'] = df['close'].pct_change()
 
     # Calculate Sharpe ratio (mean return - risk-free rate) / std deviation of returns
-    mean_return = df['daily_return'].mean()
-    std_dev = df['daily_return'].std()
+    mean_return = df['30h_return'].mean()
+    std_dev = df['30h_return'].std()
 
     sharpe_ratio = (mean_return - RISK_FREE_RATE) / std_dev if std_dev != 0 else 0
     conn.close()
@@ -211,4 +212,35 @@ def remove_from_watchlist(ticker):
     finally:
         conn.close()
 
+def add_company_info(ticker, company_name, sector=None, industry=None):
+    conn = sqlite3.connect(DB_FILE)
+    c = conn.cursor()
+    
+    # Create table if it doesn't exist
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS company_info (
+            ticker TEXT PRIMARY KEY,
+            company_name TEXT,
+            sector TEXT,
+            industry TEXT
+        )
+    ''')
+    
+    # Insert or update company info
+    c.execute('''
+        INSERT OR REPLACE INTO company_info (ticker, company_name, sector, industry)
+        VALUES (?, ?, ?, ?)
+    ''', (ticker, company_name, sector, industry))
+    
+    conn.commit()
+    conn.close()
 
+def get_company_info(ticker):
+    conn = sqlite3.connect(DB_FILE)
+    c = conn.cursor()
+    
+    c.execute('SELECT * FROM company_info WHERE ticker = ?', (ticker,))
+    info = c.fetchone()
+    
+    conn.close()
+    return info
