@@ -69,7 +69,7 @@ def stock_detail(ticker):
     conn = get_db_connection()
     
     # Get stock data
-    stock_data = conn.execute('''
+    stock_data = conn.execute(''' 
         SELECT datetime, open, high, low, close, volume 
         FROM stock_data 
         WHERE ticker = ? 
@@ -79,15 +79,12 @@ def stock_detail(ticker):
     
     conn.close()
     
-    # Generate plot - use Agg backend for non-interactive plotting
-    import matplotlib
-    matplotlib.use('Agg')  # Set the backend before importing pyplot
-    import matplotlib.pyplot as plt
-    from io import BytesIO
-    import base64
-    
     dates = [row['datetime'] for row in stock_data]
     closes = [row['close'] for row in stock_data]
+    
+    # Reverse the order of dates and closes to display them chronologically
+    dates = dates[::-1]
+    closes = closes[::-1]
     
     plt.figure(figsize=(10, 5))
     plt.plot(dates, closes)
