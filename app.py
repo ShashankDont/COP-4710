@@ -1,25 +1,36 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
 import sqlite3
-from datetime import datetime
+from datetime import datetime, timedelta
 import matplotlib.pyplot as plt
 from io import BytesIO
 import base64
+from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.triggers.date import DateTrigger
 from database_setup import add_to_watchlist, remove_from_watchlist, create_db, update_top_stocks
-from program import fetch_initial_data, stock_list
+from program import fetch_initial_data, fetch_hourly_data
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key_here'  # Needed for flash messages
 
-create_db()
-fetch_initial_data([
+stock_list = [
     "AAPL", "MSFT", "TSLA", "GOOGL", "AMZN", "NVDA", "META",
     "JPM", "V", "MA", "UNH", "HD", "DIS", "ADBE", "NFLX",
     "BAC", "INTC", "KO", "PEP", "CSCO"
-])
+]
+
+create_db()
+fetch_initial_data(stock_list)
 update_top_stocks()
 
 # Database configuration
 DATABASE = 'stocks.db'
+
+def scheduled_update():
+    fetch_hourly_data(stock_list)
+
+scheduler = BackgroundScheduler()
+scheduler.add_job(func=scheduled_update, trigger="interval", minutes=60)
+scheduler.start()
 
 def get_db_connection():
     conn = sqlite3.connect(DATABASE)
