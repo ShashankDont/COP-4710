@@ -4,19 +4,12 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
 import yfinance as yf
-import schedule
-import time
+import pytz
 from database_setup import create_db, insert_data, prune_old_data, update_top_stocks
 
 DB_FILE = "stocks.db"
 RISK_FREE_RATE = 0.0436 / 252  # 4.36% 1-month Treasury bill rate, divided by 252 trading days to get daily rate
-
-# Define your tickers
-stock_list = [
-    "AAPL", "MSFT", "TSLA", "GOOGL", "AMZN", "NVDA", "META",
-    "JPM", "V", "MA", "UNH", "HD", "DIS", "ADBE", "NFLX",
-    "BAC", "INTC", "KO", "PEP", "CSCO"
-]
+eastern = pytz.timezone("America/New_York")
 
 # Initial 1-month daily data
 def fetch_initial_data(tickers):
@@ -48,9 +41,8 @@ def fetch_hourly_data(tickers):
         stock = yf.Ticker(ticker)
         df = stock.history(period="1d", interval="1h")
         if not df.empty:
-            df = df[df.index <= pd.Timestamp.now()]
+            df = df[df.index <= pd.Timestamp.now(tz=eastern)]
             insert_data(ticker, df)
 
     prune_old_data()
     update_top_stocks()
-
